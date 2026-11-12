@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘의 메뉴</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F5; --surface:#FFFFFF; --steel:#DCE1E4; --steel-deep:#C6CDD1; --slot:#E8ECEE;
+  --ink:#1D2326; --muted:#5E696F; --red:#C33A1F; --line:#D3D9DC; --on-tag:#FFFFFF; --tag:rgba(29,35,38,.72);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#121618; --surface:#1B2124; --steel:#2B3337; --steel-deep:#20272A; --slot:#1A2023;
+    --ink:#EDF1F3; --muted:#9BA7AD; --red:#EE6145; --line:#2F383C; --on-tag:#FFFFFF; --tag:rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  line-height:1.5;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+}
+.wrap{max-width:540px; margin:0 auto; padding:20px 16px 40px}
+.place{font-size:.95rem; font-weight:700; color:var(--muted); margin:0}
+.date{
+  font-family:"Black Han Sans","Gothic A1",sans-serif; font-weight:400;
+  font-size:clamp(2.2rem,11vw,3.1rem); line-height:1.05; letter-spacing:-.01em; margin:4px 0 16px;
+}
+.demo{background:var(--surface); border:1px dashed var(--line); border-radius:12px; padding:8px 12px; font-size:.85rem; color:var(--muted); margin-bottom:14px}
+.tabs{display:inline-flex; background:var(--steel); border-radius:999px; padding:4px; margin-bottom:16px}
+.tabs button{
+  font:inherit; font-weight:700; font-size:.95rem; border:0; background:transparent; color:var(--muted);
+  padding:8px 18px; border-radius:999px; cursor:pointer;
+}
+.tabs button[aria-selected="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tabs button:focus-visible,.btn:focus-visible{outline:3px solid var(--red); outline-offset:2px}
+
+/* 식판 */
+.tray{
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px; border-radius:28px;
+  background:linear-gradient(165deg,var(--steel),var(--steel-deep));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 10px 24px -14px rgba(0,0,0,.35);
+}
+.slot{background:var(--slot); border-radius:18px; padding:8px 8px 10px; box-shadow:inset 0 2px 6px rgba(0,0,0,.13); min-width:0}
+.slot--main{grid-column:span 2}
+.ph{
+  position:relative; aspect-ratio:4/3; border-radius:12px; overflow:hidden; background:var(--surface);
+  display:grid; place-items:center; font-size:2.2rem;
+}
+.slot--main .ph{aspect-ratio:16/9; font-size:3rem}
+.slot--soup .ph{border-radius:50%; aspect-ratio:1; width:76%; margin:2px auto 0}
+.ph img{width:100%; height:100%; object-fit:cover; display:block}
+.ph .tag{position:absolute; left:6px; bottom:6px; font-size:.68rem; background:var(--tag); color:var(--on-tag); padding:2px 6px; border-radius:6px}
+.slot--soup .ph .tag{left:50%; transform:translateX(-50%); bottom:10%}
+.name{font-weight:700; font-size:1rem; margin:8px 2px 0; word-break:keep-all}
+.slot--main .name{font-size:1.3rem}
+.slot--soup .name{text-align:center}
+.meta{font-size:.78rem; color:var(--muted); margin:2px 2px 0; word-break:keep-all}
+.slot--soup .meta{text-align:center}
+.hot{color:var(--red); font-weight:700}
+
+.empty{background:var(--surface); border-radius:20px; padding:28px 20px; text-align:center}
+.empty h2{font-family:"Black Han Sans","Gothic A1",sans-serif; font-weight:400; font-size:1.5rem; margin:0 0 6px}
+.empty p{margin:0; color:var(--muted)}
+.btn{font:inherit; font-weight:700; margin-top:14px; border:0; border-radius:999px; padding:10px 20px; background:var(--ink); color:var(--bg); cursor:pointer}
+
+/* 주간 */
+.week{list-style:none; margin:0; padding:0; background:var(--surface); border-radius:20px; overflow:hidden}
+.week li{display:grid; grid-template-columns:64px 1fr; gap:12px; padding:14px 16px; border-top:1px solid var(--line)}
+.week li:first-child{border-top:0}
+.week .d{font-weight:700}
+.week .d small{display:block; font-weight:400; color:var(--muted); font-size:.8rem}
+.week .items{word-break:keep-all}
+.week .items .main{font-weight:700}
+.week .none{color:var(--muted)}
+.week li.today{box-shadow:inset 4px 0 0 var(--red)}
+.week li.today .d{color:var(--red)}
+
+.store-title{font-size:1.05rem; margin:28px 0 10px}
+.gallery{display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px}
+.gallery img{flex:0 0 78%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; scroll-snap-align:start; background:var(--surface)}
+.info{margin:24px 0 0; display:grid; grid-template-columns:auto 1fr; gap:6px 16px; font-size:.95rem}
+.info dt{color:var(--muted)}
+.info dd{margin:0; font-weight:500}
+.info a{color:inherit}
+.note{margin-top:20px; font-size:.8rem; color:var(--muted)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <p class="place" id="place"></p>
+  <h1 class="date" id="date"></h1>
+  <div class="demo" id="demo" hidden>지금은 예시 데이터로 보여주고 있어요. 아래 CONFIG에 시트 링크를 넣으면 실제 메뉴가 나와요.</div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-today" aria-selected="true" aria-controls="view-today">오늘</button>
+    <button role="tab" id="tab-week" aria-selected="false" aria-controls="view-week">이번 주</button>
+  </div>
+
+  <section id="view-today" role="tabpanel" aria-labelledby="tab-today"></section>
+  <section id="view-week" role="tabpanel" aria-labelledby="tab-week" hidden></section>
+
+  <section id="store" hidden>
+    <h2 class="store-title">가게 모습</h2>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <dl class="info" id="info"></dl>
+  <p class="note">사진은 예시예요. 실제 음식과 다를 수 있어요.</p>
+</main>
+
+<script>
+/* ===================== 여기만 바꾸면 돼요 ===================== */
+const CONFIG = {
+  RESTAURANT_NAME: "예찬식당",
+  // 구글 시트 → 파일 → 공유 → 웹에 게시 → 각 탭을 CSV로 게시한 링크
+  RESPONSES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQE7Q5NuBBPTFcvlDz8MZcmPW22Oncb3RlHjERrIRhabK81toEhiHD7axDhPyH3Zz6INhP-BJfvgcgH/pub?gid=224182715&single=true&output=csv",   // 폼응답 탭
+  MENU_DB_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQE7Q5NuBBPTFcvlDz8MZcmPW22Oncb3RlHjERrIRhabK81toEhiHD7axDhPyH3Zz6INhP-BJfvgcgH/pub?gid=0&single=true&output=csv",     // 메뉴DB 탭 (열: 메뉴명, 카테고리, 사진, 맵기, 알레르기)
+  PHOTO_FOLDER: "images/", // 사진 파일을 넣을 폴더
+  PRICE: "1인 8,000원",
+  HOURS: "평일 11:00 ~ 14:00",
+  ADDRESS: "",
+  PHONE: "",
+  // 직접 찍은 가게 사진 파일 (예: ["store/1.jpg", "store/2.jpg"]). 비워두면 안 보여요.
+  STORE_PHOTOS: [],
+  WEEK_DAYS: [1, 2, 3, 4, 5],          // 영업 요일 (0=일, 1=월 … 6=토)
+  CATEGORY_ORDER: ["메인", "국", "반찬", "후식", "기타"],
+  REFRESH_MINUTES: 5
+};
+/* ============================================================ */
+
+const DAY_KO = ["일","월","화","수","목","금","토"];
+const EMOJI = { "메인":"🍖", "국":"🍲", "반찬":"🥗", "후식":"🍮", "기타":"🍽️" };
+const DEMO = !CONFIG.RESPONSES_CSV_URL || !CONFIG.MENU_DB_CSV_URL;
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function pad(n){ return String(n).padStart(2, "0"); }
+
+/* 서울 기준 오늘 날짜 */
+function todayISO(){ return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" }); }
+function isoToDate(iso){ const [y,m,d] = iso.split("-").map(Number); return new Date(Date.UTC(y, m-1, d, 12)); }
+function dateToISO(dt){ return dt.getUTCFullYear() + "-" + pad(dt.getUTCMonth()+1) + "-" + pad(dt.getUTCDate()); }
+function weekDates(iso){
+  const t = isoToDate(iso), dow = t.getUTCDay();
+  const mon = new Date(t); mon.setUTCDate(t.getUTCDate() - ((dow + 6) % 7));
+  return CONFIG.WEEK_DAYS.map(wd => { const d = new Date(mon); d.setUTCDate(mon.getUTCDate() + ((wd + 6) % 7)); return dateToISO(d); });
+}
+
+/* "2026. 11. 11", "2026-11-11", "11/11/2026" 등 어떤 형식이든 YYYY-MM-DD로 */
+function parseDateCell(s){
+  if (!s) return "";
+  let m = s.match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (m) return m[1] + "-" + pad(m[2]) + "-" + pad(m[3]);
+  m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return m[3] + "-" + pad(m[1]) + "-" + pad(m[2]);
+  return "";
+}
+
+function parseCSV(text){
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (q){
+      if (c === '"'){ if (text[i+1] === '"'){ f += '"'; i++; } else q = false; }
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === ","){ row.push(f); f = ""; }
+    else if (c === "\n"){ row.push(f); rows.push(row); row = []; f = ""; }
+    else if (c !== "\r") f += c;
+  }
+  if (f !== "" || row.length){ row.push(f); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim() !== ""));
+}
+
+async function fetchCSV(url){
+  const res = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return parseCSV(await res.text());
+}
+
+function buildDB(rows){
+  const [head, ...body] = rows; const H = head.map(h => h.trim());
+  const col = k => H.findIndex(h => h.includes(k));
+  const iName = col("메뉴"), iCat = col("카테고리"), iPhoto = col("사진"), iSpicy = col("맵"), iAll = col("알레르기");
+  const db = {};
+  body.forEach(r => {
+    const name = (r[iName] || "").trim(); if (!name) return;
+    db[name] = {
+      cat: (r[iCat] || "").trim(),
+      photo: iPhoto >= 0 ? (r[iPhoto] || "").trim() : "",
+      spicy: iSpicy >= 0 ? (parseInt(r[iSpicy], 10) || 0) : 0,
+      allergy: iAll >= 0 ? (r[iAll] || "").trim() : ""
+    };
+  });
+  return db;
+}
+
+function buildDays(rows, db){
+  const [head, ...body] = rows; const H = head.map(h => h.trim());
+  const iTs = H.findIndex(h => /타임스탬프|timestamp/i.test(h));
+  const iDate = H.findIndex(h => /날짜|date/i.test(h) && !/타임스탬프|timestamp/i.test(h));
+  const days = {};
+  body.forEach(r => {
+    const date = parseDateCell(iDate >= 0 ? r[iDate] : "") || parseDateCell(iTs >= 0 ? r[iTs] : "");
+    if (!date) return;
+    const seen = new Set(), items = [];
+    H.forEach((h, i) => {
+      if (i === iTs || i === iDate) return;
+      const cell = (r[i] || "").trim(); if (!cell) return;
+      const hint = CONFIG.CATEGORY_ORDER.find(c => h.includes(c)) || "기타";
+      cell.split(/\s*,\s*/).filter(Boolean).forEach(name => {
+        if (seen.has(name)) return; seen.add(name);
+        const d = db[name] || {};
+        items.push({ name, cat: d.cat || hint, photo: d.photo || "", spicy: d.spicy || 0, allergy: d.allergy || "" });
+      });
+    });
+    days[date] = items; // 같은 날짜를 다시 제출하면 마지막 것이 적용돼요
+  });
+  return days;
+}
+
+function groupByCat(items){
+  const order = [...CONFIG.CATEGORY_ORDER];
+  items.forEach(it => { if (!order.includes(it.cat)) order.push(it.cat); });
+  return order.flatMap(c => items.filter(it => it.cat === c));
+}
+
+function photoHTML(it){
+  const emoji = EMOJI[it.cat] || "🍽️";
+  if (!it.photo) return `<div class="ph" aria-hidden="true">${emoji}</div>`;
+  const src = /^https?:\/\//.test(it.photo) ? it.photo : CONFIG.PHOTO_FOLDER + it.photo;
+  return `<div class="ph"><img src="${esc(src)}" alt="${esc(it.name)} 예시 사진" loading="lazy"
+    onerror="this.parentNode.innerHTML='${emoji}'"><span class="tag">예시 사진</span></div>`;
+}
+
+function renderToday(days, today){
+  const el = document.getElementById("view-today");
+  const dow = isoToDate(today).getUTCDay();
+  if (!CONFIG.WEEK_DAYS.includes(dow)){
+    el.innerHTML = `<div class="empty"><h2>오늘은 쉬는 날이에요</h2><p>${esc(CONFIG.HOURS)}</p></div>`; return;
+  }
+  const items = days[today];
+  if (!items || !items.length){
+    el.innerHTML = `<div class="empty"><h2>오늘 메뉴를 준비하고 있어요</h2><p>보통 오전 중에 올라와요.</p>
+      <button class="btn" onclick="load()">새로고침</button></div>`; return;
+  }
+  el.innerHTML = `<div class="tray">${groupByCat(items).map(it => {
+    const cls = it.cat === "메인" ? " slot--main" : it.cat === "국" ? " slot--soup" : "";
+    const meta = [it.cat];
+    if (it.spicy > 0) meta.push(`<span class="hot" aria-label="맵기 ${it.spicy}단계">${"🌶".repeat(Math.min(it.spicy, 3))}</span>`);
+    if (it.allergy) meta.push("알레르기 " + esc(it.allergy));
+    return `<div class="slot${cls}">${photoHTML(it)}<p class="name">${esc(it.name)}</p><p class="meta">${meta.join("  ")}</p></div>`;
+  }).join("")}</div>`;
+}
+
+function renderWeek(days, today){
+  const el = document.getElementById("view-week");
+  el.innerHTML = `<ul class="week">${weekDates(today).map(iso => {
+    const dt = isoToDate(iso), items = days[iso];
+    const label = `${DAY_KO[dt.getUTCDay()]}<small>${dt.getUTCMonth()+1}/${dt.getUTCDate()}${iso === today ? " 오늘" : ""}</small>`;
+    const body = items && items.length
+      ? groupByCat(items).map(it => it.cat === "메인" ? `<span class="main">${esc(it.name)}</span>` : esc(it.name)).join(", ")
+      : `<span class="none">${iso < today ? "기록 없음" : "아직 안 정해졌어요"}</span>`;
+    return `<li class="${iso === today ? "today" : ""}"><span class="d">${label}</span><span class="items">${body}</span></li>`;
+  }).join("")}</ul>`;
+}
+
+function renderHeader(today){
+  const dt = isoToDate(today);
+  document.getElementById("place").textContent = CONFIG.RESTAURANT_NAME;
+  document.getElementById("date").textContent = `${dt.getUTCMonth()+1}월 ${dt.getUTCDate()}일 ${DAY_KO[dt.getUTCDay()]}요일`;
+  document.title = `오늘의 메뉴 | ${CONFIG.RESTAURANT_NAME}`;
+  const rows = [["가격", CONFIG.PRICE], ["영업시간", CONFIG.HOURS], ["위치", CONFIG.ADDRESS],
+    ["전화", CONFIG.PHONE ? `<a href="tel:${esc(CONFIG.PHONE)}">${esc(CONFIG.PHONE)}</a>` : ""]];
+  const photos = CONFIG.STORE_PHOTOS || [];
+  document.getElementById("store").hidden = !photos.length;
+  document.getElementById("gallery").innerHTML = photos
+    .map((p, i) => `<img src="${esc(p)}" alt="${esc(CONFIG.RESTAURANT_NAME)} 가게 사진 ${i + 1}" loading="lazy">`).join("");
+  document.getElementById("info").innerHTML = rows.filter(r => r[1])
+    .map(([k, v]) => `<dt>${k}</dt><dd>${k === "전화" ? v : esc(v)}</dd>`).join("");
+}
+
+/* 예시 데이터: 시트 링크가 없을 때만 사용 */
+function demoData(today){
+  const db = [["메뉴명","카테고리","사진","맵기","알레르기"],
+    ["제육볶음","메인","","2","대두, 밀"],["고등어구이","메인","","0","고등어"],["닭볶음탕","메인","","2","대두"],["오징어볶음","메인","","3","오징어"],["돈까스","메인","","0","밀, 우유, 계란"],
+    ["된장찌개","국","","0","대두"],["미역국","국","","0",""],["김치찌개","국","","1",""],["순두부찌개","국","","2","대두"],["콩나물국","국","","0","대두"],
+    ["잡채","반찬","","0","대두, 밀"],["계란말이","반찬","","0","계란"],["콩나물무침","반찬","","0","대두"],["배추김치","반찬","","1",""],["감자조림","반찬","","0","대두"],["어묵볶음","반찬","","1","밀"],["시금치나물","반찬","","0",""],
+    ["식혜","후식","","0",""],["요구르트","후식","","0","우유"]];
+  const plan = [
+    ["제육볶음","된장찌개","잡채, 계란말이, 배추김치, 콩나물무침","식혜",""],
+    ["고등어구이","미역국","감자조림, 어묵볶음, 배추김치, 시금치나물","요구르트",""],
+    ["닭볶음탕, 돈까스","김치찌개","잡채, 콩나물무침, 배추김치, 감자조림","식혜","떡볶이"],
+    ["오징어볶음","순두부찌개","계란말이, 시금치나물, 배추김치, 어묵볶음","요구르트",""],
+    ["제육볶음","콩나물국","잡채, 감자조림, 배추김치, 계란말이","식혜",""]];
+  const resp = [["타임스탬프","날짜","메인","국","반찬","후식","기타 메뉴"]];
+  weekDates(today).forEach((iso, i) => {
+    if (iso > today || !plan[i]) return;
+    const [y,m,d] = iso.split("-").map(Number);
+    resp.push([`${y}. ${m}. ${d} 오전 9:30:00`, `${y}. ${m}. ${d}`, ...plan[i]]);
+  });
+  return { db, resp };
+}
+
+async function load(){
+  const today = todayISO();
+  renderHeader(today);
+  try {
+    let dbRows, respRows;
+    if (DEMO){ ({ db: dbRows, resp: respRows } = demoData(today)); }
+    else { [dbRows, respRows] = await Promise.all([fetchCSV(CONFIG.MENU_DB_CSV_URL), fetchCSV(CONFIG.RESPONSES_CSV_URL)]); }
+    document.getElementById("demo").hidden = !DEMO;
+    const days = buildDays(respRows, buildDB(dbRows));
+    renderToday(days, today);
+    renderWeek(days, today);
+  } catch (e) {
+    console.error(e);
+    document.getElementById("view-today").innerHTML = `<div class="empty"><h2>메뉴를 불러오지 못했어요</h2>
+      <p>인터넷 연결을 확인하고 다시 시도해 주세요.</p><button class="btn" onclick="load()">새로고침</button></div>`;
+  }
+}
+
+document.querySelectorAll('[role="tab"]').forEach(tab => tab.addEventListener("click", () => {
+  document.querySelectorAll('[role="tab"]').forEach(t => {
+    const on = t === tab; t.setAttribute("aria-selected", on);
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+  });
+}));
+
+load();
+setInterval(load, CONFIG.REFRESH_MINUTES * 60 * 1000);
+</script>
+</body>
+</html>
